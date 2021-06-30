@@ -6,12 +6,15 @@ COPY package*.json ./
 COPY yarn.lock ./
 
 RUN yarn install --link-duplicates --ignore-optional
+RUN rm -rf node_modules/sharp
+RUN npm install --arch=x64 --platform=linux --target=8.10.0 sharp
 
 COPY . .
 
 RUN yarn build
 RUN yarn install --production --link-duplicates --ignore-optional
-
+RUN rm -rf node_modules/sharp
+RUN npm install --arch=x64 --platform=linux --target=8.10.0 sharp
 
 FROM node:10.19.0-alpine as production
 EXPOSE 3000
