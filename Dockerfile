@@ -1,4 +1,4 @@
-FROM node:latest AS development
+FROM node:10.19.0 AS development
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN yarn build
 RUN yarn install --production --link-duplicates --ignore-optional
 
 
-FROM node:alpine as production
+FROM node:10.19.0-alpine as production
 EXPOSE 3000
 
 WORKDIR /app
