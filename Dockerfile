@@ -1,26 +1,28 @@
-FROM node:latest as build
+FROM node:latest AS development
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY *.json ./
-COPY yarn.lock .
-RUN yarn install --link-duplicates --ignore-optional
+COPY package*.json ./
 
+RUN npm install --only=development
 
-COPY ./ ./
-RUN yarn build
-RUN yarn install --production --link-duplicates --ignore-optional
+COPY . .
 
+RUN npm run build
 
-FROM node:alpine as prod
-EXPOSE 3000
+FROM node:alpine as production
 
-WORKDIR /app
-USER node
-ENV NODE_ENV production
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 
-COPY --from=build /app/node_modules /app/node_modules
-COPY --from=build /app/dist /app/dist
-COPY ./*.json /app/
+WORKDIR /usr/src/app
 
-CMD ["node", "--expose-gc", "dist/main.js" ]
+COPY package*.json ./
+
+RUN npm install --only=production
+
+COPY . .
+
+COPY --from=development /usr/src/app/dist ./dist
+
+CMD ["node", "dist/main"]
