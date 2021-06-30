@@ -1,20 +1,28 @@
-FROM node:12 AS builder
+FROM node:latest AS builder
 
 WORKDIR /app
 
-COPY ./package.json ./
+COPY *.json ./
+COPY yarn.lock .
 
-RUN npm config set ignore-script true
-RUN npm i
-RUN npm config set ignore-script false
+RUN yarn install --link-duplicates --ignore-optional
 
-COPY . .
+COPY ./ ./
 
-RUN npm run build
+RUN yarn build
+RUN yarn install --production --link-duplicates --ignore-optional
 
-FROM node:12-alpine
+FROM node:alpine
+EXPOSE 3000
 
 WORKDIR /app
 
-COPY --from=builder /app/dist .
-CMD ["node", "/app/main.js"]
+USER node
+ENV NODE_ENV production
+
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/dist /app/dist
+
+COPY ./*json /app/
+
+CMD ["node", "--expose-gc", "dist/main.js" ]
